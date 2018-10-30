@@ -17,7 +17,7 @@ In the image path folder you must place:
 
 Video Slide Merger depends on OpenCV. You also need CMake to generate the project files.
 
-## Build
+## Build
 
 ### Linux
 
