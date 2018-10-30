@@ -134,7 +134,7 @@ int main(int argc, char ** argv) {
     loadImages(argv[3], "frame_", images);
     
     std::vector<Mat> translatedImages;
-    loadImages(argv[3], "frame_en_", translatedImages);
+    loadImages(argv[3], "frame_alt_", translatedImages);
 
     size_t currentImage = 0;
     int curFrame = 0;
@@ -145,7 +145,7 @@ int main(int argc, char ** argv) {
     std::vector<std::thread> workers;
     std::vector<Mat> result;
     std::mutex m;
-    float treshold = 90.0f;
+    float treshold = 60.0f;
     auto start = std::chrono::steady_clock::now();
     while (!done) {
         frames.clear();
