@@ -1,4 +1,5 @@
 #include <opencv2/opencv.hpp>
+#include <opencv2/core/utility.hpp>
 #include <iostream>
 #include <vector>
 #include <limits>
@@ -9,12 +10,13 @@
 
 using namespace cv;
 
-void loadImages(const std::string & path, const std::string & imgPrefix, std::vector<Mat> & result) {
-    for (int i = 0; ; ++i) {
-        std::string imgPath = path + "/" + imgPrefix + std::to_string(i) + ".jpg";
+void loadImages(const std::string & path, const std::string & imgPrefix,const std::string & extension, const std::int8_t & startindex, std::vector<Mat> & result) {
+    for (int i = startindex; ; ++i) {
+        std::string imgPath = path + "/" + imgPrefix + std::to_string(i) + "." + extension;
+        std::cout << "Read image file: " << imgPath << std::endl;
         Mat image = imread(imgPath.c_str(), IMREAD_COLOR);
         if (!image.empty()) {
-            std::cout << "Read image file: " << imgPath << std::endl;
+            //std::cout << "Read image file: " << imgPath << std::endl;
             result.push_back(image);
         }
         else {
@@ -103,13 +105,32 @@ void combineTranslatedVideo(const cv::Mat & videoFrame, const cv::Mat & differen
 }
 
 int main(int argc, char ** argv) {
-    if (argc<4) {
-        std::cout << "Usage: DisplayVideo input.mp4 output.mp4 imagePath" << std::endl;
-        return -1;
+    const String keys =
+    "{help h usage ?     |          | print this message               }"
+    "{@input             |          | video input used as template     }"
+    "{@output            |output.mp4| video output as result of this   }"
+    "{@inputImagePath    |          | path with the original images    }"
+    "{outputImagePath op |          | path with the replacing images   }"
+    "{startIndex index id| 1        | value used as starting index     }"
+    "{inputPrefix ipre   |frame_    | prefix used in the input images  }"
+    "{outputPrefix opre  |frame_alt_| prefix used in the output images }"
+    "{imageextension ext |jpg       | image extension                  }"
+    ;
+
+    CommandLineParser parser(argc, argv, keys);
+    parser.about("Video slide merger v0.0.1");
+    
+    if (parser.has("help"))
+    {
+        parser.printMessage();
+        return 0;
     }
     
+    
+    
+    
     // Source video
-    std::string videoPath = argv[1];
+    std::string videoPath = parser.get<String>(0);
     VideoCapture cap(videoPath);
     if (!cap.isOpened()) {
         return -1;
@@ -117,11 +138,11 @@ int main(int argc, char ** argv) {
     
     
     // Destination video
-    Size S = Size((int) cap.get(CV_CAP_PROP_FRAME_WIDTH), (int) cap.get(CV_CAP_PROP_FRAME_HEIGHT));
-    std::string outPath = argv[2];
+    Size S = Size((int) cap.get(CAP_PROP_FRAME_WIDTH), (int) cap.get(CAP_PROP_FRAME_HEIGHT));
+    std::string outPath = parser.get<String>(1);
     VideoWriter outputVideo;
-    int ex = static_cast<int>(cap.get(CV_CAP_PROP_FOURCC)); // codec type
-    outputVideo.open(outPath, ex, cap.get(CV_CAP_PROP_FPS), S, true);
+    int ex = static_cast<int>(cap.get(CAP_PROP_FOURCC)); // codec type
+    outputVideo.open(outPath, ex, cap.get(CAP_PROP_FPS), S, true);
     
     if (!outputVideo.isOpened()) {
         std::cerr << "Could not open output video stream" << std::endl;
@@ -131,11 +152,23 @@ int main(int argc, char ** argv) {
     Mat edges;
     
     std::vector<Mat> images;
-    loadImages(argv[3], "frame_", images);
+    loadImages(parser.get<String>(2), parser.get<String>("inputPrefix"),parser.get<String>("imageextension"),parser.get<int>("startIndex"), images);
     
     std::vector<Mat> translatedImages;
-    loadImages(argv[3], "frame_alt_", translatedImages);
-
+    std::string outputImagePath = parser.get<String>("outputImagePath");
+    
+    if ( outputImagePath.empty() ){
+        outputImagePath=parser.get<String>(2);
+    }
+    
+    std::cerr << outputImagePath << std::endl;
+    
+    loadImages(outputImagePath, parser.get<String>("outputPrefix"),parser.get<String>("imageextension"),parser.get<int>("startIndex"),translatedImages);
+    if (!parser.check())
+    {
+        parser.printErrors();
+        return 0;
+    }
     size_t currentImage = 0;
     int curFrame = 0;
     
