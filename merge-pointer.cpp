@@ -175,6 +175,7 @@ int main(int argc, char ** argv) {
     int threads = std::thread::hardware_concurrency();
     bool done = false;
     std::vector<Mat> frames;
+    cv::Mat * slideImage;
     std::vector<std::thread> workers;
     std::vector<Mat> result;
     std::mutex m;
@@ -200,13 +201,27 @@ int main(int argc, char ** argv) {
         for (auto i=0; i<frames.size(); ++i) {
             workers.push_back(std::thread([&](int frameIndex, int curImg) {
                 auto & inFrame = frames[frameIndex];
+                int oldImg = curImg;
                 curImg = closestImageIndex(inFrame, images, curImg);
-    
-                auto & slideImage = images[curImg];
-        
+                //not exactly what we wanted but does the work right now
+                if (oldImg != curImg)
+                {
+                    
+                    slideImage = & frames[frameIndex];
+            
+                }
+                else
+                {
+                    if (curImg ==0)//std::cout << slideImage->data;
+                    {
+                    slideImage = & frames[frameIndex];
+                    }
+                }
+                
+            
                 Mat difference;
-                absdiff(inFrame, slideImage, difference);
-        
+                absdiff(inFrame, *slideImage, difference);
+                std::cout << "aqui2";
                 cv::Mat translatedImage = translatedImages[curImg];
                 cv::Mat imgResult = Mat::zeros(difference.rows, difference.cols, CV_8UC3);
 
