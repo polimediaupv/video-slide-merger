@@ -212,7 +212,7 @@ int main(int argc, char ** argv) {
                 }
                 else
                 {
-                    if (curImg ==0)//std::cout << slideImage->data;
+                    if (curImg ==0)
                     {
                     slideImage = & frames[frameIndex];
                     }
@@ -221,7 +221,7 @@ int main(int argc, char ** argv) {
             
                 Mat difference;
                 absdiff(inFrame, *slideImage, difference);
-                std::cout << "aqui2";
+                
                 cv::Mat translatedImage = translatedImages[curImg];
                 cv::Mat imgResult = Mat::zeros(difference.rows, difference.cols, CV_8UC3);
 
