@@ -197,27 +197,19 @@ int main(int argc, char ** argv) {
             }
         }
         
+        slideImage = & frames[0];
         
         for (auto i=0; i<frames.size(); ++i) {
             workers.push_back(std::thread([&](int frameIndex, int curImg) {
                 auto & inFrame = frames[frameIndex];
-                int oldImg = curImg;
+                
                 curImg = closestImageIndex(inFrame, images, curImg);
                 //not exactly what we wanted but does the work right now
-                if (oldImg != curImg)
-                {
-                    
-                    slideImage = & frames[frameIndex];
-            
-                }
-                else
-                {
-                    if (curImg ==0)
-                    {
-                    slideImage = & frames[frameIndex];
-                    }
-                }
                 
+                if (currentImage != curImg)
+                {
+                    slideImage = & frames[frameIndex];
+                }
             
                 Mat difference;
                 absdiff(inFrame, *slideImage, difference);
